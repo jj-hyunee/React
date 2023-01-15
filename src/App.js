@@ -1,108 +1,56 @@
-import React, {Component} from "react";
+import React, {useState, useCallback} from "react";
 import "./App.css";
+import Form from "./components/Form"
+import Lists from "./components/Lists";
 
-export default class App extends Component {
+export default function App() {
+  //첫번째 인수: 변수 이름 / 두번째 인수: State를 정하는 함수
+  const [todoData, setTodoData] = useState([]);
+  const [value, setValue] = useState("");
 
-  state = {
-    todoData : [
-    ],
-    value: ""
-  }
-  btnStyle = {
-    color: "#fff",
-    border: "none",
-    padding: "5px 9px",
-    borderRadius: "50%",
-    cursor: "pointer",
-    float: "right"
-  }
+  
+  const handleClick = useCallback((id) => {
+    let newTodoData = todoData.filter(data => data.id != id)
+    // this.setState({todoData: newTodoData});
+    setTodoData(newTodoData)
+},
+  [todoData]//todoData가 새로 생길 때만 리로드
+)
 
-  getStyle = (completed) => {
-    return {
-      padding: "10px",
-      borderBottom: "1px #ccc dotted",
-      textDecoration: completed ? "line-through" : "none"
-    }
-  }
 
-  handleClick = (id) => {
-    let newTodoData = this.state.todoData.filter(data => data.id != id)
-    this.setState({todoData: newTodoData});
-    console.log('newTodoData', newTodoData);
-  }
-
-  handleChange = (e) => {
-    this.setState({value: e.target.value});
-  }
-
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     //form 안에 input을 전송할 때 페이지 리로드 되는 걸 막아줌
     e.preventDefault();
 
     //새로운 할 일 데이터
     let newTodo = {
       id: Date.now(),
-      title: this.state.value,
-      completed: false
+      title: value,
+      completed: false,
     };
 
-    this.setState({ todoData: [...this.state.todoData, newTodo], value: ""});
-
+    // this.setState({ todoData: [...todoData, newTodo], value: ""});
+    setTodoData(prev => [...prev, newTodo]);
+    setValue("");
   };
 
-  handleCompletedChange = (id) => {
-    let newTodoData = this.state.todoData.map(data => {
-      if (data.id === id){
-        data.completed = !data.completed;
-      }
-      return data
-    })
-
-    //업데이트
-    this.setState({ todoData: newTodoData});
+  const handleRemoveClick = () => {
+    setTodoData([]);
   }
-
-  render() {
-    return(
-      <div className="container">
-        <div className="todoBlock">
-          <div className="title">
-            <h1>할 일 목록</h1>
-          </div>
-
-          {/* <div style = {this.getStyle()}>
-            <input type="checkbox" defaultChecked = {false} />
-            공부하기
-            <button style={this.btnStyle}> x </button>
-          </div> */}
-
-          {this.state.todoData.map((data) =>(
-            <div style={this.getStyle(data.completed)} key={data.id}>
-                <input type="checkbox" defaultChecked={false} onChange={() => this.handleCompletedChange(data.id)}/>
-                {data.title}
-                <button style={this.btnStyle} onClick={() => this.handleClick(data.id)}>x</button>
-            </div>
-          ))}
-
-
-          <form style={{display: 'flex'}} onSubmit={this.handleSubmit}>
-            <input
-              type="text"
-              name="value"
-              style={{ flex: "10", padding: "5px"}}
-              placeholder = "해야 할 일을 입력하세요."
-              value={this.state.value}
-              onChange={this.handleChange}
-            />
-            <input
-              type="submit"
-              value="입력"
-              className = "btn"
-              style={{flex: '1'}}
-            />
-          </form>
+  
+  return(
+    <div className="flex items-center justify-center w-screen h-screen bg-blue-100">
+      <div className="w-full p-6 m-4 bg-white rounded shadow lg: w-3/4 lg: max-w-lg">
+        <div className="flex justify-between mb-3">
+          <h1>할 일 목록</h1>
+          <button onClick={handleRemoveClick}>Delete All</button>
         </div>
+
+        <Lists handleClick={handleClick} todoData={todoData} setTodoData={setTodoData} />
+        <Form handleSubmit={handleSubmit} value={value} setValue={setValue} />
+
       </div>
-    )
-  }
+    </div>
+  );
 }
+
